@@ -77,8 +77,12 @@ async def test_expired_keys_disappear_in_real_time(redis_client: Redis) -> None:
     limiter = Limiter(SlidingLog(), Quota(limit=1, period=0.2), backend)
     assert (await limiter.check("k")).allowed
     assert not (await limiter.check("k")).allowed
+    [key] = await redis_client.keys("*")
+    assert 0 < await redis_client.pttl(key) <= 251  # period + padding, rounded up to whole ms
     await asyncio.sleep(0.4)
-    assert await redis_client.dbsize() == 0
+    # Not DBSIZE: Redis removes unread expired keys in a background sweep whose timing it does
+    # not promise (it lags on some hosts); a read always sees an expired key as gone.
+    assert not await redis_client.exists(key)
     assert (await limiter.check("k")).allowed
 
 

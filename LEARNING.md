@@ -188,3 +188,19 @@ details are saved as JSON next to the tables, and `make bench` regenerates them.
 works. CI builds the real Docker image, starts the Compose stack, and runs `scripts/smoke.sh`:
 five calls succeed, the sixth gets a 429, and `/metrics` recorded it. That catches things unit
 tests cannot, such as a missing file in the image or a wrong port.
+
+## After release: tests that pass on every machine
+
+**How Redis actually deletes expired keys.** A TTL makes a key *logically* gone the moment it
+expires: any read (`GET`, `EXISTS`) checks the time and deletes it on the spot. Keys nobody reads
+are removed by a background sweep that samples keys a few times per second, so their memory is
+reclaimed a little later, how much later depending on the host. A test asserted `DBSIZE == 0`
+150 ms after expiry, which counted on the sweep; it failed on a Mac running Redis in Docker
+Desktop. The test now checks what the library controls: the TTL itself, and that a read sees the
+key gone.
+
+**Production timeouts do not belong in correctness tests.** The 50 ms backend timeout is right for
+an API, but ten concurrent first calls (new connections, script loads) can take longer than that
+on a slow CI runner. The limiter then fails open, as designed, and a test about slot counting
+sees ten slots granted instead of three. Tests that are not about timeouts now pass a generous
+one, so they fail only when the logic is wrong, not when the machine is slow.

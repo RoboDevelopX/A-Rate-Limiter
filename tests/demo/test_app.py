@@ -148,7 +148,7 @@ def test_settings_from_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
 
 @pytest.mark.redis
 async def test_with_redis(redis_client: Redis) -> None:
-    async with connect(redis_url=REDIS_URL) as client:
+    async with connect(redis_url=REDIS_URL, redis_timeout=5) as client:
         for _ in range(5):
             assert (await client.post("/predict", json=body(), headers=FREE)).status_code == 200
         assert (await client.post("/predict", json=body(), headers=FREE)).status_code == 429

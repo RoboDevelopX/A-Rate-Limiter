@@ -11,9 +11,15 @@ pytestmark = pytest.mark.redis
 UNREACHABLE = "redis://localhost:1/0"
 
 
+def patient() -> FailureGuard:
+    """These tests are about slots, not latency: on a slow host ten first calls (new connections,
+    script loads) can exceed the 50 ms default and fail open, which would hide the real result."""
+    return FailureGuard(timeout=5)
+
+
 async def test_slots_are_shared_and_capped(redis_client: Redis) -> None:
-    worker_a = RedisConcurrencyLimiter(redis_client)
-    worker_b = RedisConcurrencyLimiter(redis_client)
+    worker_a = RedisConcurrencyLimiter(redis_client, guard=patient())
+    worker_b = RedisConcurrencyLimiter(redis_client, guard=patient())
     leases = await asyncio.gather(*(w.acquire("gpu", 3) for w in [worker_a, worker_b] * 5))
     granted = [lease for lease in leases if lease is not None]
     assert len(granted) == 3
@@ -22,7 +28,7 @@ async def test_slots_are_shared_and_capped(redis_client: Redis) -> None:
 
 
 async def test_unreleased_leases_expire(redis_client: Redis) -> None:
-    limiter = RedisConcurrencyLimiter(redis_client, lease_ttl=0.2)
+    limiter = RedisConcurrencyLimiter(redis_client, lease_ttl=0.2, guard=patient())
     assert await limiter.acquire("gpu", 1) is not None  # a worker that crashed mid-request
     assert await limiter.acquire("gpu", 1) is None
     await asyncio.sleep(0.3)

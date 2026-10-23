@@ -22,7 +22,8 @@ async def test_redis_outage_trips_the_breaker_and_fails_open() -> None:
 
 
 async def test_healthy_redis_is_used_normally(redis_client: Redis) -> None:
-    backend = ResilientBackend(RedisBackend(redis_client), mode=FailureMode.CLOSED)
+    guard = FailureGuard(timeout=5)  # a slow host must not turn "healthy" into a fail-closed denial
+    backend = ResilientBackend(RedisBackend(redis_client), mode=FailureMode.CLOSED, guard=guard)
     limiter = Limiter(FixedWindow(), Quota(limit=1, period=60), backend)
     assert (await limiter.check("k")).allowed
     assert not (await limiter.check("k")).allowed
