@@ -8,7 +8,7 @@ from mlratelimit.algorithms import (
     SlidingLog,
     TokenBucket,
 )
-from mlratelimit.backends import Backend, MemoryBackend
+from mlratelimit.backends import Backend, MemoryBackend, RedisBackend
 from mlratelimit.clock import Clock, ManualClock, SystemClock
 from mlratelimit.limiter import Limiter, RateLimiter
 from mlratelimit.types import Quota, RateLimitResult
@@ -27,6 +27,7 @@ __all__ = [
     "Quota",
     "RateLimitResult",
     "RateLimiter",
+    "RedisBackend",
     "SlidingCounter",
     "SlidingLog",
     "SystemClock",

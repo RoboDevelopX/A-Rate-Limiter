@@ -1,3 +1,4 @@
+import os
 from collections.abc import Callable
 from typing import Any
 
@@ -5,6 +6,9 @@ from mlratelimit import Algorithm, Limiter, Quota, RateLimitResult
 
 # A start time that is a multiple of every period used in tests, so windows line up.
 T0 = 60.0 * 28_333_333
+
+# Database 15 by default so a local run never touches data in database 0.
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/15")
 
 MakeLimiter = Callable[[Algorithm[Any], Quota], Limiter]
 

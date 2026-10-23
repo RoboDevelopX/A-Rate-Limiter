@@ -92,3 +92,35 @@ makes it safe to use Redis key TTLs (next milestone) to bound memory.
 of resolution, so `now + 1/3` is not exact. The property tests use times that are multiples of
 1/64 s and power-of-two periods so the math is exact and invariants can be asserted with no
 tolerance; production traffic only sees sub-microsecond rounding.
+
+## Milestone 4: Redis backend with Lua scripts
+
+**Why a Lua script makes a check atomic.** Redis executes commands one at a time on a single
+thread, and a Lua script counts as one command: while it runs, no other client's command can
+execute. So read state, decide, write state happens as one indivisible step even when 50 app
+servers hit the same key. `test_naive_read_modify_write_overadmits` shows the alternative failing:
+a plain `GET`, decide in Python, `SET` lets far more than the limit through, while the scripted
+version admits exactly the limit for all five algorithms. (The other classic tool, `WATCH` plus
+`MULTI`, is optimistic: it retries on conflict, which melts down on a hot key.)
+
+**EVALSHA and the script cache.** Sending the whole script on every request wastes bandwidth, so
+Redis caches scripts by their SHA1 hash and clients call `EVALSHA <sha>`. A restart, failover or
+`SCRIPT FLUSH` empties that cache; Redis then answers `NOSCRIPT`, and redis-py's `Script` object
+reloads the source and retries once. A test flushes the cache mid-run to prove it.
+
+**Server time, not client time.** Each app server's clock drifts a little. If every server passed
+its own `time.time()`, two servers disagreeing by 300 ms would compute different windows and
+refills for the same key. The scripts read Redis's own clock with `TIME`, so there is one clock
+for everyone. Tests can still inject a fixed time, which is how the Lua and Python
+implementations are compared step by step.
+
+**Floats across the Lua boundary.** Redis converts Lua numbers to *integers* in replies and to
+14-significant-digit strings in commands, so `3.123456789012345` tokens would silently become
+`3.1234567890123`. Every float is therefore formatted with `%.17g` (enough digits to round-trip a
+double) before it leaves Lua. Swapping that for `tostring` makes the parity test fail, which is
+how we know the test would catch the bug.
+
+**TTLs keep Redis memory bounded.** Every key gets a TTL equal to its logical expiry (when its
+state stops mattering) plus a small padding. Because the previous milestone proved that
+forgetting expired state never changes a decision, Redis can delete keys on its own and memory
+only holds callers active within roughly one period.

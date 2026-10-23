@@ -16,6 +16,8 @@ FastAPI service. Five algorithms behind one `RateLimiter` interface, in-memory a
 | Auto-fix + format | `make format` |
 | Type check (mypy --strict on `src/`) | `make typecheck` |
 | Tests with coverage | `make test` |
+| Tests without Redis | `make test-unit` |
+| Start a local Redis | `make redis` (or `redis-server --daemonize yes`) |
 | Everything CI runs | `make check` |
 
 ## Conventions
@@ -43,6 +45,8 @@ src/mlratelimit/
   backends/
     base.py           Backend protocol: apply(algorithm, [LimitRequest]) -> [RateLimitResult]
     memory.py         OrderedDict store, write-order eviction of expired entries
+    redis.py          RedisBackend: one Lua script per algorithm via EVALSHA
+    lua/              _prelude.lua + <algorithm>.lua + _driver.lua, concatenated at load
 ```
 
 Key rules:
@@ -52,6 +56,12 @@ Key rules:
 - `Backend.apply` is atomic and all-or-nothing across the batch (a denied quota charges no
   other quota in the same batch).
 - Memory backend: no `await` between reading and writing state. Keep it that way.
+- Each `lua/<name>.lua` mirrors `algorithms/<name>.py` operation for operation, so floats
+  match bit for bit. Change both together; `tests/integration/test_parity.py` compares them.
+- Lua scripts use Redis `TIME` unless the backend has a test clock. Floats cross the
+  Lua/Redis boundary only as `fmt()` strings (`%.17g`); never pass a raw Lua float.
+- Redis tests use `REDIS_URL` (default `redis://localhost:6379/15`) and are marked `redis`.
+  They skip when Redis is down, except with `REQUIRE_REDIS=1` (CI), where they fail.
 - Storage keys look like `rl:{<caller>}:<name>:<algorithm>`; the braces are a Redis Cluster
   hash tag.
 - Tests: `tests/algorithms/` use the `make_limiter` fixture, which is parametrized over
