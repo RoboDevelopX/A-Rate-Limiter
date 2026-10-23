@@ -116,10 +116,11 @@ def test_fixed_window_never_exceeds_limit_in_a_window(
 ) -> None:
     trace = run(FixedWindow(), quota, ops)
     for now, _, _ in trace:
-        start = math.floor(now / quota.period) * quota.period
-        assert allowed_between(trace, start, start + quota.period - 1e-9, open_start=False) <= (
-            quota.limit
-        )
+        # Compare window indexes, not timestamps: at epoch scale a tiny epsilon such as
+        # `start + period - 1e-9` rounds back to `start + period` and pulls in the next window.
+        window = math.floor(now / quota.period)
+        used = sum(c for t, c, r in trace if r.allowed and math.floor(t / quota.period) == window)
+        assert used <= quota.limit
 
 
 @given(quota=quotas, ops=steps)
