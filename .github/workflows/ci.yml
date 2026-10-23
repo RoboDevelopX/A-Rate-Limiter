@@ -40,3 +40,14 @@ jobs:
           enable-cache: true
       - run: uv sync --locked --all-extras
       - run: uv run pytest --cov --cov-report=term-missing
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose up --build --detach --wait
+      - run: ./scripts/smoke.sh
+      - if: always()
+        run: docker compose logs
+      - if: always()
+        run: docker compose down

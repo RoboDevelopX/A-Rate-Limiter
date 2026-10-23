@@ -157,3 +157,34 @@ the real client IP comes from the `X-Forwarded-For` header. But any client can s
 so it is only read when the peer is a configured trusted proxy, and then from the right: each
 proxy appends the address it saw, so the right-most address that is not one of our proxies is
 the one our own infrastructure vouches for. Everything to its left could be forged.
+
+## Milestone 6: Docker, benchmarks, documentation
+
+**Multi-stage Docker builds.** The `Dockerfile` installs dependencies in a *build* stage (with
+uv and a compiler toolchain available), then copies only the finished virtualenv into a clean
+*runtime* stage. The final image has no build tools, runs as a non-root user, and has a
+`HEALTHCHECK` that calls `/healthz`. Compose waits for Redis to be healthy before starting the
+API (`depends_on: condition: service_healthy`), so the app never starts against a Redis that
+is not ready yet.
+
+**Percentiles, not averages.** One slow check in a hundred barely moves the mean, but if an API
+call makes several backend calls, or a page makes dozens of API calls, users hit that "rare" slow
+path all the time. That is why the benchmark reports p50, p95 and p99 (the latency 50%, 95% and
+99% of calls beat), measured per call after a warm-up so one-time costs like loading scripts are
+excluded.
+
+**Find the bottleneck before optimizing.** The Redis numbers looked slow (~9,000 checks/s) until
+the benchmark also recorded CPU: the Python process was at ~100% of a core while Redis sat at
+~30%. So the limit is client-side work in one Python process (building commands, parsing
+replies), not Redis, and the fix is more worker processes, not a faster Redis. Measure, then
+decide.
+
+**Honest benchmarks.** Numbers only mean something with their context: hardware, versions,
+method, and what is excluded (here, network latency, because Redis ran on the same machine).
+Cloud VMs are noisy, so the README says how much two runs differed. Raw results and machine
+details are saved as JSON next to the tables, and `make bench` regenerates them.
+
+**Smoke tests.** Unit tests prove the parts work; a smoke test proves the assembled product
+works. CI builds the real Docker image, starts the Compose stack, and runs `scripts/smoke.sh`:
+five calls succeed, the sixth gets a 429, and `/metrics` recorded it. That catches things unit
+tests cannot, such as a missing file in the image or a wrong port.

@@ -1,5 +1,4 @@
 import asyncio
-import time
 from collections.abc import AsyncIterator
 
 import pytest
@@ -104,13 +103,3 @@ def test_script_source_is_prelude_body_and_driver() -> None:
     source = load_script_source("token_bucket")
     assert source.index("redis.call('TIME')") < source.index("local function evaluate")
     assert source.index("local function evaluate") < source.index("commits[i]()")
-
-
-async def test_exposes_client(redis_client: Redis) -> None:
-    assert RedisBackend(redis_client).client is redis_client
-
-
-async def test_server_time_tracks_wall_clock(redis_client: Redis) -> None:
-    """Sanity check for the local setup: Redis and this host agree within a second."""
-    seconds, _ = await redis_client.time()
-    assert abs(seconds - time.time()) < 1

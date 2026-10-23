@@ -19,6 +19,9 @@ FastAPI service. Five algorithms behind one `RateLimiter` interface, in-memory a
 | Tests without Redis | `make test-unit` |
 | Start a local Redis | `make redis` (or `redis-server --daemonize yes`) |
 | Run the demo API | `make run` (memory backend; `REDIS_URL=redis://localhost:6379/0 make run` for Redis) |
+| Demo + Redis in Docker | `make up` (detached, waits for health), `make down` |
+| End-to-end smoke test | `make smoke` (against a running `make up`) |
+| Benchmarks | `make bench` (needs Redis; writes `bench/results/*.json` and `*.md`) |
 | Everything CI runs | `make check` |
 
 ## Conventions
@@ -60,6 +63,11 @@ src/mlratelimit/
 demo/
   app.py              create_app(Settings): /predict, /healthz, /metrics
   limits.yaml         demo limits, fake models, demo-only API keys
+bench/
+  run.py              latency/throughput per algorithm x backend, with CPU accounting
+  accuracy.py         peak-in-window accuracy and Redis bytes per key
+  results/            committed outputs; README tables are copied from here
+scripts/smoke.sh      end-to-end check used by CI's docker job
 ```
 
 Key rules:
@@ -76,6 +84,8 @@ Key rules:
 - Metric labels hold rule names (`free:default`), never caller keys: keep cardinality bounded.
 - Demo `/predict` dependency order is auth -> GPU slot -> rate limit, so a 503 (capacity) does
   not charge quota. 429 = caller's quota; 503 = server capacity.
+- README numbers must come from `bench/results/` (rerun `make bench` after changing algorithms
+  or backends, then update the README tables). Never edit numbers by hand.
 - Redis tests use `REDIS_URL` (default `redis://localhost:6379/15`) and are marked `redis`.
   They skip when Redis is down, except with `REQUIRE_REDIS=1` (CI), where they fail.
 - Storage keys look like `rl:{<caller>}:<name>:<algorithm>`; the braces are a Redis Cluster

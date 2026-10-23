@@ -49,11 +49,6 @@ class RedisBackend:
         self._ttl_padding = ttl_padding
         self._scripts: dict[str, AsyncScript] = {}
 
-    @property
-    def client(self) -> Redis:
-        """The underlying Redis client."""
-        return self._client
-
     async def apply(
         self, algorithm: Algorithm[Any], requests: Sequence[LimitRequest]
     ) -> list[RateLimitResult]:

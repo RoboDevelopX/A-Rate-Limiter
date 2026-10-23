@@ -1,0 +1,55 @@
+{
+  "meta": {
+    "timestamp": "2026-10-23T05:23:29+00:00",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu_count": 4,
+    "memory_gb": 15.7,
+    "os": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "git_commit": "a03afbe",
+    "quota": "100 per 60s",
+    "random_bursts_requests": 9763
+  },
+  "rows": [
+    {
+      "algorithm": "fixed_window",
+      "boundary_burst_peak_ratio": 2.0,
+      "boundary_burst_admitted_vs_exact": 2.0,
+      "random_bursts_peak_ratio": 1.95,
+      "random_bursts_admitted_vs_exact": 1.2000421141292903,
+      "redis_bytes_after_100": 104
+    },
+    {
+      "algorithm": "sliding_log",
+      "boundary_burst_peak_ratio": 1.0,
+      "boundary_burst_admitted_vs_exact": 1.0,
+      "random_bursts_peak_ratio": 1.0,
+      "random_bursts_admitted_vs_exact": 1.0,
+      "redis_bytes_after_100": 5192
+    },
+    {
+      "algorithm": "sliding_counter",
+      "boundary_burst_peak_ratio": 1.0,
+      "boundary_burst_admitted_vs_exact": 1.0,
+      "random_bursts_peak_ratio": 1.55,
+      "random_bursts_admitted_vs_exact": 1.032849020846494,
+      "redis_bytes_after_100": 120
+    },
+    {
+      "algorithm": "token_bucket",
+      "boundary_burst_peak_ratio": 1.0,
+      "boundary_burst_admitted_vs_exact": 1.0,
+      "random_bursts_peak_ratio": 1.95,
+      "random_bursts_admitted_vs_exact": 1.2710044219835754,
+      "redis_bytes_after_100": 136
+    },
+    {
+      "algorithm": "leaky_bucket",
+      "boundary_burst_peak_ratio": 1.0,
+      "boundary_burst_admitted_vs_exact": 1.0,
+      "random_bursts_peak_ratio": 1.95,
+      "random_bursts_admitted_vs_exact": 1.2710044219835754,
+      "redis_bytes_after_100": 136
+    }
+  ]
+}

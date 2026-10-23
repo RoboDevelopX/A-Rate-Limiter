@@ -1,0 +1,238 @@
+{
+  "meta": {
+    "timestamp": "2026-10-23T05:24:00+00:00",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu_count": 4,
+    "memory_gb": 15.7,
+    "os": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+    "python": "3.12.3",
+    "git_commit": "a03afbe",
+    "requests": 20000,
+    "concurrency": 64,
+    "quota": "1000/1s over 1000 keys",
+    "redis_version": "7.0.15",
+    "redis_location": "same machine (loopback)"
+  },
+  "rows": [
+    {
+      "backend": "memory",
+      "algorithm": "fixed_window",
+      "mode": "sequential",
+      "p50_us": 5.213,
+      "p95_us": 11.4532,
+      "p99_us": 22.59801,
+      "throughput_per_s": 149037.77782733203,
+      "python_cpu_pct": 98.86719067731725,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "fixed_window",
+      "mode": "concurrent",
+      "p50_us": 5.113,
+      "p95_us": 7.80125,
+      "p99_us": 16.645580000000002,
+      "throughput_per_s": 168036.67951740546,
+      "python_cpu_pct": 99.88268267194097,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "sliding_log",
+      "mode": "sequential",
+      "p50_us": 5.149,
+      "p95_us": 7.7311499999999995,
+      "p99_us": 21.01719,
+      "throughput_per_s": 161252.44646152342,
+      "python_cpu_pct": 95.18006278614648,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "sliding_log",
+      "mode": "concurrent",
+      "p50_us": 5.7,
+      "p95_us": 13.09035,
+      "p99_us": 31.21538,
+      "throughput_per_s": 120224.78283362303,
+      "python_cpu_pct": 96.16239367338754,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "sliding_counter",
+      "mode": "sequential",
+      "p50_us": 5.855,
+      "p95_us": 12.5504,
+      "p99_us": 23.51508,
+      "throughput_per_s": 136565.24826077285,
+      "python_cpu_pct": 95.55265572933892,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "sliding_counter",
+      "mode": "concurrent",
+      "p50_us": 6.001,
+      "p95_us": 8.426,
+      "p99_us": 18.24018,
+      "throughput_per_s": 148178.03950046888,
+      "python_cpu_pct": 99.59935103063508,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "token_bucket",
+      "mode": "sequential",
+      "p50_us": 4.877,
+      "p95_us": 7.04615,
+      "p99_us": 13.81802,
+      "throughput_per_s": 180384.75924815985,
+      "python_cpu_pct": 99.42356967860438,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "token_bucket",
+      "mode": "concurrent",
+      "p50_us": 5.094,
+      "p95_us": 7.66205,
+      "p99_us": 16.601119999999998,
+      "throughput_per_s": 167996.4848415664,
+      "python_cpu_pct": 99.12464591591774,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "leaky_bucket",
+      "mode": "sequential",
+      "p50_us": 4.83,
+      "p95_us": 6.77715,
+      "p99_us": 20.06433,
+      "throughput_per_s": 178038.94112291405,
+      "python_cpu_pct": 97.5778024612354,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "memory",
+      "algorithm": "leaky_bucket",
+      "mode": "concurrent",
+      "p50_us": 4.162,
+      "p95_us": 11.05025,
+      "p99_us": 42.643029999999996,
+      "throughput_per_s": 164488.71139044553,
+      "python_cpu_pct": 93.48633667520278,
+      "redis_cpu_pct": 0.0
+    },
+    {
+      "backend": "redis",
+      "algorithm": "fixed_window",
+      "mode": "sequential",
+      "p50_us": 145.9275,
+      "p95_us": 224.40054999999998,
+      "p99_us": 416.18718,
+      "throughput_per_s": 6161.747168856231,
+      "python_cpu_pct": 83.84526599928674,
+      "redis_cpu_pct": 26.57182606476808
+    },
+    {
+      "backend": "redis",
+      "algorithm": "fixed_window",
+      "mode": "concurrent",
+      "p50_us": 7416.5045,
+      "p95_us": 10207.771,
+      "p99_us": 14426.28661,
+      "throughput_per_s": 7799.965540688167,
+      "python_cpu_pct": 96.55694342300993,
+      "redis_cpu_pct": 28.178506510739464
+    },
+    {
+      "backend": "redis",
+      "algorithm": "sliding_log",
+      "mode": "sequential",
+      "p50_us": 169.9045,
+      "p95_us": 316.52205,
+      "p99_us": 525.8849200000001,
+      "throughput_per_s": 5157.758882938752,
+      "python_cpu_pct": 74.53428363025404,
+      "redis_cpu_pct": 34.22603691696586
+    },
+    {
+      "backend": "redis",
+      "algorithm": "sliding_log",
+      "mode": "concurrent",
+      "p50_us": 7171.9915,
+      "p95_us": 9138.30105,
+      "p99_us": 10636.43584,
+      "throughput_per_s": 8658.704394277007,
+      "python_cpu_pct": 99.62055873225553,
+      "redis_cpu_pct": 51.40603529247095
+    },
+    {
+      "backend": "redis",
+      "algorithm": "sliding_counter",
+      "mode": "sequential",
+      "p50_us": 151.135,
+      "p95_us": 249.69514999999998,
+      "p99_us": 432.72171999999995,
+      "throughput_per_s": 5920.72706443105,
+      "python_cpu_pct": 83.24071554788438,
+      "redis_cpu_pct": 27.385168494748243
+    },
+    {
+      "backend": "redis",
+      "algorithm": "sliding_counter",
+      "mode": "concurrent",
+      "p50_us": 7174.35,
+      "p95_us": 8196.8913,
+      "p99_us": 9385.654400000001,
+      "throughput_per_s": 9211.537401406176,
+      "python_cpu_pct": 99.67832256673836,
+      "redis_cpu_pct": 32.23158388670336
+    },
+    {
+      "backend": "redis",
+      "algorithm": "token_bucket",
+      "mode": "sequential",
+      "p50_us": 142.403,
+      "p95_us": 207.4985,
+      "p99_us": 342.89322999999996,
+      "throughput_per_s": 6403.639945747555,
+      "python_cpu_pct": 85.038161241946,
+      "redis_cpu_pct": 26.610870103949438
+    },
+    {
+      "backend": "redis",
+      "algorithm": "token_bucket",
+      "mode": "concurrent",
+      "p50_us": 6050.9515,
+      "p95_us": 8799.85485,
+      "p99_us": 10569.288970000001,
+      "throughput_per_s": 9726.82043405755,
+      "python_cpu_pct": 99.43728529737045,
+      "redis_cpu_pct": 32.20253577693215
+    },
+    {
+      "backend": "redis",
+      "algorithm": "leaky_bucket",
+      "mode": "sequential",
+      "p50_us": 144.954,
+      "p95_us": 241.0994,
+      "p99_us": 451.14909,
+      "throughput_per_s": 6132.915763460261,
+      "python_cpu_pct": 84.68308620980761,
+      "redis_cpu_pct": 26.498151828815818
+    },
+    {
+      "backend": "redis",
+      "algorithm": "leaky_bucket",
+      "mode": "concurrent",
+      "p50_us": 7071.5715,
+      "p95_us": 9713.04975,
+      "p99_us": 10721.33168,
+      "throughput_per_s": 9028.781882717507,
+      "python_cpu_pct": 99.44991067439078,
+      "redis_cpu_pct": 30.101778221342585
+    }
+  ]
+}

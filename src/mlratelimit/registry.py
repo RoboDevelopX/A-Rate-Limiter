@@ -23,11 +23,6 @@ class LimiterRegistry:
         self._algorithm = ALGORITHMS[config.algorithm]
         self._limiters: dict[str, CompositeLimiter] = {}
 
-    @property
-    def config(self) -> LimitsConfig:
-        """The configuration limiters are built from."""
-        return self._config
-
     def for_rule(self, tier: str, model: str) -> CompositeLimiter:
         """The limiter for ``tier`` and ``model``. Raises ``KeyError`` for unknown tiers."""
         name, quotas = self._config.rule_for(tier, model)

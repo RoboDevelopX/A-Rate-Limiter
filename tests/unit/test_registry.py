@@ -17,7 +17,6 @@ async def test_one_limiter_per_rule(clock: ManualClock) -> None:
     registry = LimiterRegistry(parse_config(CONFIG), MemoryBackend(clock))
     assert registry.for_rule("free", "a") is registry.for_rule("free", "b")
     assert registry.for_rule("free", "big") is not registry.for_rule("free", "a")
-    assert registry.config.algorithm == "fixed_window"
 
 
 async def test_unlisted_models_share_the_default_budget(clock: ManualClock) -> None:
