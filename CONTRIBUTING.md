@@ -11,13 +11,14 @@ FastAPI service. Five algorithms behind one `RateLimiter` interface, in-memory a
 
 | Task | Command |
 | --- | --- |
-| Install (from lockfile) | `make install` (`uv sync --locked`) |
+| Install (from lockfile, all extras) | `make install` (`uv sync --locked --all-extras`) |
 | Lint + format check | `make lint` |
 | Auto-fix + format | `make format` |
 | Type check (mypy --strict on `src/`) | `make typecheck` |
 | Tests with coverage | `make test` |
 | Tests without Redis | `make test-unit` |
 | Start a local Redis | `make redis` (or `redis-server --daemonize yes`) |
+| Run the demo API | `make run` (memory backend; `REDIS_URL=redis://localhost:6379/0 make run` for Redis) |
 | Everything CI runs | `make check` |
 
 ## Conventions
@@ -47,6 +48,18 @@ src/mlratelimit/
     memory.py         OrderedDict store, write-order eviction of expired entries
     redis.py          RedisBackend: one Lua script per algorithm via EVALSHA
     lua/              _prelude.lua + <algorithm>.lua + _driver.lua, concatenated at load
+  composite.py        CompositeLimiter: several NamedQuotas (requests or tokens) in one batch
+  config.py           pydantic LimitsConfig (tiers x models, global limit, concurrency) + YAML
+  registry.py         LimiterRegistry: one CompositeLimiter per (tier, model) rule
+  resilience.py       CircuitBreaker, FailureGuard (timeout + breaker), ResilientBackend
+  concurrency.py      in-flight caps: MemoryConcurrencyLimiter, RedisConcurrencyLimiter
+  keys.py             ClientIP (trusted proxies), api_key (hashed), user_id (request.state)
+  metrics.py          Prometheus Metrics + InstrumentedLimiter wrapper
+  log.py              JsonFormatter, configure_logging (apps call it, the library never does)
+  fastapi/            RateLimitMiddleware, RateLimitDependency, ConcurrencyDependency, headers
+demo/
+  app.py              create_app(Settings): /predict, /healthz, /metrics
+  limits.yaml         demo limits, fake models, demo-only API keys
 ```
 
 Key rules:
@@ -60,6 +73,9 @@ Key rules:
   match bit for bit. Change both together; `tests/integration/test_parity.py` compares them.
 - Lua scripts use Redis `TIME` unless the backend has a test clock. Floats cross the
   Lua/Redis boundary only as `fmt()` strings (`%.17g`); never pass a raw Lua float.
+- Metric labels hold rule names (`free:default`), never caller keys: keep cardinality bounded.
+- Demo `/predict` dependency order is auth -> GPU slot -> rate limit, so a 503 (capacity) does
+  not charge quota. 429 = caller's quota; 503 = server capacity.
 - Redis tests use `REDIS_URL` (default `redis://localhost:6379/15`) and are marked `redis`.
   They skip when Redis is down, except with `REQUIRE_REDIS=1` (CI), where they fail.
 - Storage keys look like `rl:{<caller>}:<name>:<algorithm>`; the braces are a Redis Cluster

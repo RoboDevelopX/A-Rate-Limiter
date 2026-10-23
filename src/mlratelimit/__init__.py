@@ -10,6 +10,7 @@ from mlratelimit.algorithms import (
 )
 from mlratelimit.backends import Backend, MemoryBackend, RedisBackend
 from mlratelimit.clock import Clock, ManualClock, SystemClock
+from mlratelimit.composite import CompositeLimiter, NamedQuota, Unit
 from mlratelimit.limiter import Limiter, RateLimiter
 from mlratelimit.types import Quota, RateLimitResult
 
@@ -19,11 +20,13 @@ __all__ = [
     "Algorithm",
     "Backend",
     "Clock",
+    "CompositeLimiter",
     "FixedWindow",
     "LeakyBucket",
     "Limiter",
     "ManualClock",
     "MemoryBackend",
+    "NamedQuota",
     "Quota",
     "RateLimitResult",
     "RateLimiter",
@@ -32,4 +35,5 @@ __all__ = [
     "SlidingLog",
     "SystemClock",
     "TokenBucket",
+    "Unit",
 ]

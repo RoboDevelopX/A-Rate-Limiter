@@ -1,0 +1,32 @@
+# Demo limits. Small numbers so a 429 is easy to trigger by hand.
+limits:
+  algorithm: sliding_counter
+  # Applied by middleware to every request, per client IP.
+  global_limit: {name: per_ip, limit: 60, period: 10}
+  tiers:
+    free:
+      default:
+        - {name: rpm, limit: 5, period: 60}
+        - {name: tpm, limit: 2000, period: 60, unit: tokens}
+    pro:
+      default:
+        - {name: rpm, limit: 60, period: 60}
+        - {name: tpm, limit: 60000, period: 60, unit: tokens}
+      models:
+        large-model:
+          - {name: rpm, limit: 20, period: 60}
+          - {name: tpm, limit: 20000, period: 60, unit: tokens}
+  # Maximum in-flight /predict calls per model, across all callers (GPU capacity).
+  concurrency:
+    default: 8
+    models: {large-model: 2}
+
+# Fake models served by /predict, with simulated inference speed.
+models:
+  small-model: {seconds_per_token: 0.0002}
+  large-model: {seconds_per_token: 0.001}
+
+# Demo-only API keys (not secrets). A real service looks the tier up in its auth system.
+api_keys:
+  demo-free-key: free
+  demo-pro-key: pro

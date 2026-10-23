@@ -124,3 +124,36 @@ how we know the test would catch the bug.
 state stops mattering) plus a small padding. Because the previous milestone proved that
 forgetting expired state never changes a decision, Redis can delete keys on its own and memory
 only holds callers active within roughly one period.
+
+## Milestone 5: FastAPI integration, config, keys, failure policy, ML features, metrics
+
+**Fail-open vs fail-closed.** When Redis is unreachable the limiter cannot know the answer, so
+it must pick one. Fail-open allows the request: the API stays up but is briefly unprotected,
+which suits most product APIs. Fail-closed rejects it: nothing gets through unmetered, which
+suits expensive GPU endpoints or abuse limits. Either way the check must fail *fast*, so every
+backend call has a 50 ms timeout instead of hanging a request thread on a dead socket.
+
+**Circuit breakers.** If Redis is down, waiting 50 ms on every request still adds latency and
+piles load onto a struggling server. A circuit breaker counts consecutive failures; after 5 it
+"opens" and skips Redis entirely for a few seconds (instant fallback), then lets one probe
+request through ("half-open"). If the probe succeeds the breaker closes and normal service
+resumes. The `ratelimit_backend_errors_total{reason="circuit_open"}` metric shows when it trips.
+
+**Cost-based limits for LLMs.** One request to a 70B model generating 2,000 tokens costs far more
+GPU time than a 10-token request, so counting requests alone is unfair and unsafe. Each tier has
+a requests-per-minute *and* a tokens-per-minute quota, checked atomically together. The token cost
+is estimated before inference (prompt length / 4 + `max_tokens`) because the true count is only
+known afterwards; a rejected request charges neither quota.
+
+**Rate limits vs concurrency limits.** A rate limit bounds how many requests start per minute; a
+concurrency limit bounds how many run at the same time. GPU endpoints need both: 20 requests a
+minute is fine, but 20 at once can run a GPU out of memory. Concurrency slots are leases in a
+Redis sorted set that expire on their own, so a crashed worker cannot hold a slot forever. When
+slots run out the API answers 503 (server busy), not 429 (your quota), and takes the slot before
+charging quota so a busy server does not burn the caller's budget.
+
+**Trusting X-Forwarded-For.** Behind a load balancer every request's TCP peer is the balancer, so
+the real client IP comes from the `X-Forwarded-For` header. But any client can send that header,
+so it is only read when the peer is a configured trusted proxy, and then from the right: each
+proxy appends the address it saw, so the right-most address that is not one of our proxies is
+the one our own infrastructure vouches for. Everything to its left could be forged.
