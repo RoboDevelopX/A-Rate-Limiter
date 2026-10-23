@@ -1,6 +1,13 @@
 """Async rate limiting for ML/LLM inference APIs."""
 
-from mlratelimit.algorithms import Algorithm, FixedWindow, TokenBucket
+from mlratelimit.algorithms import (
+    Algorithm,
+    FixedWindow,
+    LeakyBucket,
+    SlidingCounter,
+    SlidingLog,
+    TokenBucket,
+)
 from mlratelimit.backends import Backend, MemoryBackend
 from mlratelimit.clock import Clock, ManualClock, SystemClock
 from mlratelimit.limiter import Limiter, RateLimiter
@@ -13,12 +20,15 @@ __all__ = [
     "Backend",
     "Clock",
     "FixedWindow",
+    "LeakyBucket",
     "Limiter",
     "ManualClock",
     "MemoryBackend",
     "Quota",
     "RateLimitResult",
     "RateLimiter",
+    "SlidingCounter",
+    "SlidingLog",
     "SystemClock",
     "TokenBucket",
 ]

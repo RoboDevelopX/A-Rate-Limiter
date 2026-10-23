@@ -38,7 +38,8 @@ src/mlratelimit/
   limiter.py          RateLimiter protocol; Limiter = algorithm + quota + backend
   algorithms/         pure transitions: evaluate(state, now, quota, cost) -> Evaluation
     base.py           Algorithm ABC, Evaluation (result, commit(), expires_at)
-    fixed_window.py   token_bucket.py
+    fixed_window.py  sliding_log.py  sliding_counter.py  token_bucket.py  leaky_bucket.py
+    __init__.py       ALGORITHMS: name -> instance (used by config and parametrized tests)
   backends/
     base.py           Backend protocol: apply(algorithm, [LimitRequest]) -> [RateLimitResult]
     memory.py         OrderedDict store, write-order eviction of expired entries
@@ -56,3 +57,6 @@ Key rules:
 - Tests: `tests/algorithms/` use the `make_limiter` fixture, which is parametrized over
   backends, so every behaviour test runs against every backend. Shared constants live in
   `tests/helpers.py` (`T0` is aligned to every test period).
+- `tests/property/` drives algorithms through `tests.helpers.Simulator` with hypothesis. Times
+  are multiples of 1/64 s and periods powers of two so float math is exact; keep it that way
+  or invariants will need tolerances.

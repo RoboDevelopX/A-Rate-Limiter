@@ -1,6 +1,7 @@
 from typing import Any
 
 import pytest
+from hypothesis import settings
 
 from mlratelimit import Algorithm, Limiter, ManualClock, MemoryBackend, Quota
 from mlratelimit.backends.base import Backend
@@ -24,3 +25,7 @@ def make_limiter(backend: Backend) -> MakeLimiter:
         return Limiter(algorithm, quota, backend)
 
     return make
+
+
+settings.register_profile("default", deadline=None, max_examples=200)
+settings.load_profile("default")
