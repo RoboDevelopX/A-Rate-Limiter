@@ -31,9 +31,28 @@ FastAPI service. Five algorithms behind one `RateLimiter` interface, in-memory a
 
 ## Architecture
 
-Planned (filled in as milestones land):
+```
+src/mlratelimit/
+  types.py            Quota, RateLimitResult, LimitRequest (frozen dataclasses)
+  clock.py            Clock protocol, SystemClock, ManualClock (tests)
+  limiter.py          RateLimiter protocol; Limiter = algorithm + quota + backend
+  algorithms/         pure transitions: evaluate(state, now, quota, cost) -> Evaluation
+    base.py           Algorithm ABC, Evaluation (result, commit(), expires_at)
+    fixed_window.py   token_bucket.py
+  backends/
+    base.py           Backend protocol: apply(algorithm, [LimitRequest]) -> [RateLimitResult]
+    memory.py         OrderedDict store, write-order eviction of expired entries
+```
 
-- `types` / `clock`: result and quota types, injectable clock.
-- `algorithms/`: pure per-algorithm state transitions.
-- `backends/`: in-memory and Redis (Lua) storage of algorithm state.
-- `fastapi/`: middleware, per-route dependency, headers.
+Key rules:
+
+- Algorithms never store state; backends do. `evaluate` must not change semantics of the
+  stored state; persisting happens only through `Evaluation.commit()`.
+- `Backend.apply` is atomic and all-or-nothing across the batch (a denied quota charges no
+  other quota in the same batch).
+- Memory backend: no `await` between reading and writing state. Keep it that way.
+- Storage keys look like `rl:{<caller>}:<name>:<algorithm>`; the braces are a Redis Cluster
+  hash tag.
+- Tests: `tests/algorithms/` use the `make_limiter` fixture, which is parametrized over
+  backends, so every behaviour test runs against every backend. Shared constants live in
+  `tests/helpers.py` (`T0` is aligned to every test period).

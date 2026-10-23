@@ -26,3 +26,33 @@ compile step for Python.
 argue about spacing. A linter (`ruff check`) finds likely bugs and bad patterns: unused imports,
 mutable default arguments, `except:` that swallows `KeyboardInterrupt`, `assert` in production
 code. Both run in CI, so the main branch stays clean without anyone policing it by hand.
+
+## Milestone 2: interface, clock, in-memory backend, first two algorithms
+
+**The check-then-act race.** A rate limiter reads a counter, decides, then writes. If two
+requests both read "1 left" before either writes, both are allowed and the limit is broken.
+This is the core correctness problem of the whole project; every backend must make
+read-decide-write one indivisible (atomic) step. `test_many_coroutines_on_one_key_never_exceed_the_limit`
+fires 1,000 concurrent checks at one key and asserts exactly `limit` succeed.
+
+**Why the in-memory backend needs no lock.** asyncio is cooperative: a coroutine only gives up
+the event loop at an `await`. `MemoryBackend.apply` has no `await` between reading and writing
+state, so no other coroutine can run in the middle, and the race above cannot happen. This
+guarantee is per event loop: threads or multiple worker processes each have their own memory
+and would each allow the full limit, which is why multi-worker deployments need Redis.
+
+**Lazy refill instead of timers.** A token bucket never runs a background job that adds tokens.
+It stores `(tokens, updated_at)` and, on the next check, adds `elapsed * rate` tokens, capped at
+capacity. Idle keys cost zero CPU, and the stored state can be deleted once the bucket would be
+full again, because a full bucket is indistinguishable from a brand new key.
+
+**Fixed window's boundary burst.** Windows are aligned to the clock (e.g. 10:00:00-10:00:59), and
+the counter resets at each boundary. A client can spend the whole limit at 10:00:59.5 and again
+at 10:01:00.0, so twice the limit passes in half a second. It is cheap (one counter) and
+predictable, but this burst is why smoother algorithms exist. A test reproduces it on purpose.
+
+**Injectable clocks and clock skew.** Every algorithm takes `now` from a `Clock` instead of calling
+`time.time()` itself, so tests move time with `ManualClock.advance()` and never sleep. Wall clocks
+can also jump backwards (NTP corrections), so the algorithms clamp: elapsed time is never
+negative and a window never moves backwards, which means a skewed clock cannot hand out
+extra quota.
