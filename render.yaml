@@ -5,7 +5,7 @@ services:
     name: mlratelimit
     runtime: docker
     plan: free
-    region: oregon # can't be changed later; must match the Key Value instance below
+    region: singapore # can't be changed later; must match the Key Value instance below
     healthCheckPath: /healthz
     autoDeployTrigger: checksPass # redeploy a pushed commit only after CI passes
     envVars:
@@ -24,6 +24,6 @@ services:
   - type: keyvalue
     name: mlratelimit-redis
     plan: free
-    region: oregon
+    region: singapore
     ipAllowList: [] # no public access: only services in the same region can connect
     maxmemoryPolicy: allkeys-lru
