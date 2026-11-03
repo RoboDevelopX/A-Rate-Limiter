@@ -75,8 +75,9 @@ Without Docker: `make install` then `make run` (in-memory backend), or
 `render.yaml` is a [Render Blueprint](https://render.com/docs/infrastructure-as-code) for the
 demo: the API as a free Docker web service and a free Key Value instance (Valkey 8, which runs
 the same Lua scripts; the full test suite passes against it). In the Render Dashboard choose
-**New > Blueprint**, connect this repository, and click **Deploy Blueprint**. Once it is live,
-the smoke test runs against it unchanged:
+**New > Blueprint**, connect this repository, and click **Deploy Blueprint**. Opening the
+service's URL in a browser lands on the interactive API docs (`/docs`). Once it is live, the
+smoke test runs against it unchanged:
 
 ```bash
 BASE_URL=https://<your-service>.onrender.com ./scripts/smoke.sh

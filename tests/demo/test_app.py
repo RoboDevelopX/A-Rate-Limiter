@@ -115,6 +115,16 @@ async def test_healthz_and_metrics() -> None:
     assert "ratelimit_check_duration_seconds_bucket" in metrics
 
 
+async def test_bare_url_redirects_to_the_docs() -> None:
+    async with connect() as client:
+        response = await client.get("/")
+        docs = await client.get(response.headers["location"])
+    assert response.status_code == 307
+    assert response.headers["location"] == "/docs"
+    assert docs.status_code == 200
+    assert "swagger" in docs.text.lower()
+
+
 def test_estimate_prompt_tokens() -> None:
     assert estimate_prompt_tokens("x") == 1
     assert estimate_prompt_tokens("x" * 9) == 3

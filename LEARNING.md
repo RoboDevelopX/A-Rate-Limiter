@@ -224,3 +224,10 @@ wait tens of milliseconds just to be scheduled. A 50 ms Redis timeout that is ge
 laptop then expires on healthy calls, and the limiter fails open without anything being wrong
 with Redis. Capping a local container at 0.1 CPU reproduced it, which is why the Blueprint
 sets 500 ms. Timeouts must be tuned to the machine, not only to the network.
+
+**A front door for the bare URL.** An API usually has nothing to say at `/`, so FastAPI answers
+`{"detail":"Not Found"}`, which looks broken to someone clicking the link on a resume. The demo
+now answers `/` with a redirect to the interactive docs at `/docs`. It is a 307 (temporary)
+redirect rather than a 301 or 308 (permanent): browsers cache permanent redirects, so if `/`
+later gets a page of its own, visitors who came before would keep being sent elsewhere. The
+route is left out of the OpenAPI schema because it is not part of the API.

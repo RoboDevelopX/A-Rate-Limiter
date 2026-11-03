@@ -21,7 +21,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, ConfigDict, Field, PositiveFloat, ValidationError
 from redis.asyncio import Redis
 from redis.exceptions import RedisError
-from starlette.responses import Response
+from starlette.responses import RedirectResponse, Response
 
 from mlratelimit import MemoryBackend, RedisBackend
 from mlratelimit.backends.base import Backend
@@ -261,6 +261,11 @@ def create_app(settings: Settings) -> FastAPI:
                 total_tokens=prompt_tokens + body.max_tokens,
             ),
         )
+
+    @app.get("/", include_in_schema=False)
+    async def root() -> RedirectResponse:
+        """Send visitors of the bare URL to the interactive API docs."""
+        return RedirectResponse("/docs")
 
     @app.get("/healthz")
     async def healthz() -> dict[str, str]:
