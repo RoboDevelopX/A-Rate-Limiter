@@ -1,0 +1,29 @@
+# Render Blueprint: the demo API on a free web service plus a free Key Value (Valkey) instance.
+# Deploy it from the Render Dashboard with New > Blueprint; see "Deploy to Render" in README.md.
+services:
+  - type: web
+    name: mlratelimit
+    runtime: docker
+    plan: free
+    region: oregon # can't be changed later; must match the Key Value instance below
+    healthCheckPath: /healthz
+    autoDeployTrigger: checksPass # redeploy a pushed commit only after CI passes
+    envVars:
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: mlratelimit-redis
+          property: connectionString
+      - key: FAILURE_MODE
+        value: open
+      # The free plan has 0.1 CPU, so a 50 ms budget can run out while the process waits for
+      # CPU, failing open and skipping the limit. 500 ms still fails fast if Valkey is down.
+      - key: REDIS_TIMEOUT_MS
+        value: "500"
+
+  - type: keyvalue
+    name: mlratelimit-redis
+    plan: free
+    region: oregon
+    ipAllowList: [] # no public access: only services in the same region can connect
+    maxmemoryPolicy: allkeys-lru

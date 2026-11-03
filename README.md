@@ -11,7 +11,8 @@ result = await limiter.check("user:42", cost=1_250)  # an LLM call costing ~1,25
 # RateLimitResult(allowed=True, limit=40000, remaining=38750, retry_after=0.0, reset_at=...)
 ```
 
-**Contents:** [Quickstart](#quickstart) · [Using the library](#using-the-library) ·
+**Contents:** [Quickstart](#quickstart) · [Deploy to Render](#deploy-to-render) ·
+[Using the library](#using-the-library) ·
 [Architecture](#architecture) · [Algorithms compared](#algorithms-compared) ·
 [Benchmarks](#benchmarks) · [Design decisions](#design-decisions-and-tradeoffs) ·
 [Testing](#testing) · [Configuration](#configuration) ·
@@ -68,6 +69,30 @@ docker compose start redis
 
 Without Docker: `make install` then `make run` (in-memory backend), or
 `REDIS_URL=redis://localhost:6379/0 make run`.
+
+## Deploy to Render
+
+`render.yaml` is a [Render Blueprint](https://render.com/docs/infrastructure-as-code) for the
+demo: the API as a free Docker web service and a free Key Value instance (Valkey 8, which runs
+the same Lua scripts; the full test suite passes against it). In the Render Dashboard choose
+**New > Blueprint**, connect this repository, and click **Deploy Blueprint**. Once it is live,
+the smoke test runs against it unchanged:
+
+```bash
+BASE_URL=https://<your-service>.onrender.com ./scripts/smoke.sh
+```
+
+Things to know about the free plan:
+
+- The service sleeps after 15 minutes without traffic; the next request wakes it, which takes
+  about a minute.
+- It has 0.1 CPU, so the Blueprint raises `REDIS_TIMEOUT_MS` to 500. With the default 50 ms, a
+  local run capped at 0.1 CPU recorded a Redis timeout (so one fail-open decision) and a failed
+  health probe; with 500 ms, three smoke runs recorded none.
+- Free Key Value keeps data in memory only, so a restart resets every quota.
+- Requests reach the app through Render's proxy and `TRUSTED_PROXIES` is unset, so the
+  per-IP limit sees the proxy's address and counts all callers together. The per-key tier
+  limits are unaffected.
 
 ## Using the library
 

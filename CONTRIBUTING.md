@@ -67,7 +67,8 @@ bench/
   run.py              latency/throughput per algorithm x backend, with CPU accounting
   accuracy.py         peak-in-window accuracy and Redis bytes per key
   results/            committed outputs; README tables are copied from here
-scripts/smoke.sh      end-to-end check used by CI's docker job
+scripts/smoke.sh      end-to-end check used by CI's docker job (BASE_URL=... for a deployed copy)
+render.yaml           Render Blueprint: demo web service + Key Value (see README, Deploy to Render)
 ```
 
 Key rules:

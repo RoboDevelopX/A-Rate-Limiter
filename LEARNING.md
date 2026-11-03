@@ -204,3 +204,23 @@ an API, but ten concurrent first calls (new connections, script loads) can take 
 on a slow CI runner. The limiter then fails open, as designed, and a test about slot counting
 sees ten slots granted instead of three. Tests that are not about timeouts now pass a generous
 one, so they fail only when the logic is wrong, not when the machine is slow.
+
+## Deploying: one container, many hosts
+
+**The platform chooses the port.** On your laptop the API listens on 8000, but hosting platforms
+such as Render, Heroku or Cloud Run run many apps per machine and tell each one which port to
+use through the `PORT` environment variable, then route public traffic there. The image now
+starts uvicorn on `${PORT:-8000}`: whatever the platform says, or 8000 when nothing does. The
+same image runs unchanged in Docker Compose and in the cloud.
+
+**Infrastructure as code.** `render.yaml` describes the whole deployment: a web service built
+from the Dockerfile, a Key Value instance, and the environment variable that connects them
+(`REDIS_URL` comes from the Key Value's private address, so no password or hostname is ever
+typed by hand). Rebuilding the deployment from scratch, or reviewing a change to it, is then a
+matter of reading one file in git rather than clicking through a dashboard.
+
+**Tiny machines change your timeouts.** A free instance gets 0.1 of a CPU: the process may
+wait tens of milliseconds just to be scheduled. A 50 ms Redis timeout that is generous on a
+laptop then expires on healthy calls, and the limiter fails open without anything being wrong
+with Redis. Capping a local container at 0.1 CPU reproduced it, which is why the Blueprint
+sets 500 ms. Timeouts must be tuned to the machine, not only to the network.
